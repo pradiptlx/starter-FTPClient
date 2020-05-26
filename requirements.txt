@@ -1,0 +1,3 @@
+pyqt5-tools
+PyQt5~=5.13.0
+pyftpdlib~=1.5.6
