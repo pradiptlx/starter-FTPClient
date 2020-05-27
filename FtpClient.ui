@@ -171,7 +171,7 @@
           <widget class="QTreeView" name="localTreeDir"/>
          </item>
          <item>
-          <widget class="QListView" name="localListFile"/>
+          <widget class="QListWidget" name="localListFile"/>
          </item>
         </layout>
        </item>
@@ -198,7 +198,7 @@
           <widget class="QTreeView" name="remoteTreeDir"/>
          </item>
          <item>
-          <widget class="QListView" name="remoteListFile">
+          <widget class="QListWidget" name="remoteListFile">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>0</horstretch>

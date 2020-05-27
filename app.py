@@ -3,7 +3,7 @@ from PyQt5.QtCore import *
 
 from view.UiFtpClient import UiFTPClient
 from model.FTPClientModel import FTPClientModel
-import sys
+import sys, os
 
 
 # Subclass QMainWindow to customise your application's main window
@@ -31,7 +31,7 @@ class MainWindow(QMainWindow, UiFTPClient):
         # SLOT
         # self.localTreeDir.clicked.connect(
         #     self.clicked_tree_view_local)
-
+        self.localTreeDir.expanded.connect(self.clicked_tree_view_local)
         self.localTreeDir.expandsOnDoubleClick()
         # self.remoteTreeDir.expandsOnDoubleClick()
 
@@ -64,9 +64,6 @@ class MainWindow(QMainWindow, UiFTPClient):
 
         self.render_tree_view(self.fsModel, QDir(path), self.localTreeDir)
 
-    def tree_in_expand(self, index):
-        print(index)
-
     @staticmethod
     def render_tree_view(fsModel: QFileSystemModel, path: QDir, view: QTreeView):
         view.setModel(fsModel)
@@ -75,10 +72,16 @@ class MainWindow(QMainWindow, UiFTPClient):
 
     def clicked_tree_view_local(self, index):
         self.fsModel.flags(index)
-        mimeData = QMimeData().setData('text/plain', 'mimeData')
-        self.fsModel.mimeData(mimeData)
         path = self.fsModel.fileInfo(index).absoluteFilePath()
-        self.render_tree_view(self.fsModel, path, self.localTreeDir)
+        # self.render_tree_view(self.fsModel, path, self.localTreeDir)
+        self.parsing_list_widget(path, self.localListFile)
+
+    def parsing_list_widget(self, path, view: QListWidget):
+        view.clear()
+        for file in os.listdir(path):
+            itemWidget = QListWidgetItem()
+            itemWidget.setText(file)
+            view.addItem(itemWidget)
 
     # REMOTE
     def get_list_dir_remote(self, path="."):
