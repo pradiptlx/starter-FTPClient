@@ -20,6 +20,7 @@ class MainWindow(QMainWindow, UiFTPClient):
         self.setupUi(self)
 
         self.connectBtn.pressed.connect(self.connect_slot)
+
         self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
@@ -33,13 +34,14 @@ class MainWindow(QMainWindow, UiFTPClient):
 
             self.client.connect(self.username, self.password,
                                 self.host, self.port)
+            self.connectBtn.setText('Disconnect')
 
             list_dir = self.client.list_dir('.')
 
             self.create_scroll(list_dir)
-
-        elif self.client.isConnected:
-            self.connectBtn.setText('Disconnect')
+        else:
+            self.client.disconnect()
+            self.connectBtn.setText('Connect')
 
     def create_scroll(self, list_dir):
         vbox = QVBoxLayout()
@@ -47,6 +49,7 @@ class MainWindow(QMainWindow, UiFTPClient):
 
         for i in range(len(list_dir['filenames'])):
             qlab = QLabel(str(list_dir['filenames'][i]))
+            qlab.setGeometry(QRect(10, 30, 113, 20))
             vbox.addWidget(qlab)
         wdgt.setLayout(vbox)
         self.scrollArea.setWidget(wdgt)

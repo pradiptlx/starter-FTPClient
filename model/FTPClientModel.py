@@ -21,6 +21,11 @@ class FTPClientModel:
         self.isConnected = True
         return self
 
+    def disconnect(self):
+        if self.isConnected:
+            self.isConnected = False
+            self.server.quit()
+
     def list_dir(self, *args):
         list_res = []
         list_fname = []

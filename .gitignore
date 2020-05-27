@@ -140,10 +140,4 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-.gitignore
-.idea/.gitignore
-.idea/FTPClient.iml
-.idea/dictionaries
-.idea/inspectionProfiles/
-.idea/misc.xml
-.idea/modules.xml
+.idea
