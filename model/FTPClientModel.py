@@ -29,7 +29,7 @@ class FTPClientModel:
             self.isConnected = False
             self.client.quit()
 
-    def list_dir(self, *args):
+    def list_dir(self, *args) -> list:
         list_dir = []
         files_path = []
         dirs = args[0]
@@ -42,33 +42,30 @@ class FTPClientModel:
 
             list_dir.append(path)
 
-        return list_dir, files_path
+        # TODO: FILES_PATH tidak absolut dari path aslinya
+        # return list_dir, files_path
+        return list_dir
 
-    def download(self, *args):
-        res = []
+    def download(self, item, sourceName, destPath) -> bool:
+        sourcePath = os.path.join(self.remoteCurrentPath, os.path.sep + sourceName)
 
-        for arg in args:
-            fname = f"{arg}"
-            if Path(arg).is_dir():
-                with ZipFile(arg) as z:
-                    fname = f"{arg}.zip"
-                    z.write(filename=fname)
+        # Not tested yet
+        with open(destPath, 'wb') as file:
+            self.client.retrbinary(f'RETR {sourcePath}',
+                                   callback=lambda data: file.write(data))
+        # Force check
+        return Path(destPath).is_file()
 
-            with open(fname, 'wb') as fd:
-                self.client.retrbinary('RETR ' + fname, fd.write, 1024)
-                res.append(fd)
-                print(fd)
+    def upload(self, sourcePath, destName):
+        destPath = os.path.join(self.remoteCurrentPath, os.path.sep + destName)
+        # CALLBACK not working yet
+        # progres = None
 
-        return res
+        with open(sourcePath, 'rb') as file:
+            self.client.storbinary(f'STOR {destPath}',
+                                   fp=file, callback=None)
 
-    def upload(self, *args):
-        res = []
-
-        for arg in args:
-            with open(arg, 'rb') as fd:
-                self.client.storbinary('STOR ', arg, fd, 1024)
-
-    def change_dir(self, path="."):
+    def change_dir(self, path=".") -> list:
         fullpath = os.path.join(self.remoteCurrentPath, os.path.sep + path)
         self.client.cwd(fullpath)
 
@@ -81,6 +78,8 @@ class FTPClientModel:
 if __name__ == '__main__':
     client = FTPClientModel()
     client.connect()
+    client.upload(f"{os.path.abspath('../file')}\\abc.txt",
+                  "/folder1/testabc.txt")
     result = client.list_dir('.')
     print(result)
     result = client.change_dir('folder1')
