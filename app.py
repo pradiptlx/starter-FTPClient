@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+
 from view.UiFtpClient import UiFTPClient
 from model.FTPClientModel import FTPClientModel
 import sys
@@ -14,17 +14,27 @@ class MainWindow(QMainWindow, UiFTPClient):
     host = '127.0.0.1'
     port = 8009
 
+    fsModel = None
+    remoteModel = None
+
+    remoteDir = []
+    localDir = []
+
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.client = FTPClientModel()
         self.setupUi(self)
 
         self.connectBtn.pressed.connect(self.connect_slot)
+        self.filesystem_model()
 
-        self.scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # SLOT
+        # self.localTreeDir.clicked.connect(
+        #     self.clicked_tree_view_local)
 
-    # Slot for input
+        self.localTreeDir.expandsOnDoubleClick()
+        # self.remoteTreeDir.expandsOnDoubleClick()
+
     def connect_slot(self):
         if not self.client.isConnected:
             self.username = self.usernameInput.text()
@@ -36,23 +46,57 @@ class MainWindow(QMainWindow, UiFTPClient):
                                 self.host, self.port)
             self.connectBtn.setText('Disconnect')
 
-            list_dir = self.client.list_dir('.')
+            self.remoteDir = self.client.list_dir('.')
 
-            self.create_scroll(list_dir)
+            self.remote_filesystem_model()
+            # self.remoteTreeDir.expand(self.clicked_tree_view_remote)
         else:
             self.client.disconnect()
             self.connectBtn.setText('Connect')
 
-    def create_scroll(self, list_dir):
-        vbox = QVBoxLayout()
-        wdgt = QWidget()
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasText():
+            event.acceptProposedAction()
 
-        for i in range(len(list_dir['filenames'])):
-            qlab = QLabel(str(list_dir['filenames'][i]))
-            qlab.setGeometry(QRect(10, 30, 113, 20))
-            vbox.addWidget(qlab)
-        wdgt.setLayout(vbox)
-        self.scrollArea.setWidget(wdgt)
+    def filesystem_model(self, path="."):
+        self.fsModel = QFileSystemModel()
+        self.fsModel.setRootPath(path)
+
+        self.render_tree_view(self.fsModel, QDir(path), self.localTreeDir)
+
+    def tree_in_expand(self, index):
+        print(index)
+
+    @staticmethod
+    def render_tree_view(fsModel: QFileSystemModel, path: QDir, view: QTreeView):
+        view.setModel(fsModel)
+        view.setRootIndex(fsModel.index(path.absolutePath()))
+        view.setDragDropMode(QAbstractItemView.InternalMove)
+
+    def clicked_tree_view_local(self, index):
+        self.fsModel.flags(index)
+        mimeData = QMimeData().setData('text/plain', 'mimeData')
+        self.fsModel.mimeData(mimeData)
+        path = self.fsModel.fileInfo(index).absoluteFilePath()
+        self.render_tree_view(self.fsModel, path, self.localTreeDir)
+
+    # REMOTE
+    def get_list_dir_remote(self, path="."):
+        self.remoteDir = self.client.list_dir()
+
+    def change_dir_remote(self, path):
+        self.remoteDir = self.client.change_dir(path)
+
+    def remote_filesystem_model(self, path="."):
+        self.fsModel = QFileSystemModel()
+        self.fsModel.setRootPath(path)
+
+        self.render_tree_view(self.fsModel, QDir(path), self.remoteTreeDir)
+
+    def clicked_tree_view_remote(self, index: QModelIndex):
+        path = self.fsModel.fileInfo(index).absoluteFilePath()
+        print(path)
+        self.render_tree_view(self.fsModel, path, self.remoteTreeDir)
 
 
 # You need one (and only one) QApplication instance per application.
