@@ -4,6 +4,37 @@ from PyQt5.QtCore import *
 from view.UiFtpClient import UiFTPClient
 from model.FTPClientModel import FTPClientModel
 import sys, os
+from pathlib import Path
+
+
+class LocalListWidget(QListWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setAcceptDrops(True)
+        self.setIconSize(QSize(72, 72))
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+    def dragMoveEvent(self, event):
+        if event.mimeData().hasUrls:
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        if event.mimeData().hasUrls:
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+            links = []
+            for url in event.mimeData().urls():
+                print(url)
+                links.append(str(url.toLocalFile()))
+            self.emit(PYQT_SIGNAL("dropped"), links)
+        else:
+            event.ignore()
 
 
 # Subclass QMainWindow to customise your application's main window
@@ -18,7 +49,7 @@ class MainWindow(QMainWindow, UiFTPClient):
     remoteModel = None
 
     remoteDir = []
-    localDir = []
+    currentLocalDir = "."
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
@@ -28,12 +59,12 @@ class MainWindow(QMainWindow, UiFTPClient):
         self.connectBtn.pressed.connect(self.connect_slot)
         self.filesystem_model()
 
-        # SLOT
-        # self.localTreeDir.clicked.connect(
-        #     self.clicked_tree_view_local)
         self.localTreeDir.expanded.connect(self.clicked_tree_view_local)
         self.localTreeDir.expandsOnDoubleClick()
-        # self.remoteTreeDir.expandsOnDoubleClick()
+
+        self.localListFile.itemChanged.connect(self.list_item_changed)
+        self.localListFile.setAcceptDrops(True)
+        self.localListFile.setDragEnabled(True)
 
     def connect_slot(self):
         if not self.client.isConnected:
@@ -54,15 +85,38 @@ class MainWindow(QMainWindow, UiFTPClient):
             self.client.disconnect()
             self.connectBtn.setText('Connect')
 
-    def dragEnterEvent(self, event):
-        if event.mimeData().hasText():
-            event.acceptProposedAction()
-
     def filesystem_model(self, path="."):
         self.fsModel = QFileSystemModel()
         self.fsModel.setRootPath(path)
 
         self.render_tree_view(self.fsModel, QDir(path), self.localTreeDir)
+
+    def clicked_tree_view_local(self, index: QModelIndex):
+        self.fsModel.flags(index)
+        path = self.fsModel.fileInfo(index).absoluteFilePath()
+        self.currentLocalDir = path
+        self.parsing_list_widget(path, self.localListFile)
+        # self.render_tree_view(self.fsModel, path, self.localTreeDir)
+
+    def parsing_list_widget(self, path, view: QListWidget):
+        view.clear()
+        print(view.supportedDropActions())
+        for file in os.listdir(path):
+            fullpath = os.path.join(self.currentLocalDir, file)
+            if Path(fullpath).is_file():
+                itemWidget = QListWidgetItem()
+                itemWidget.setText(file)
+                view.addItem(itemWidget)
+
+    def list_item_changed(self, item: QListWidgetItem):
+        fname = os.path.join(self.currentLocalDir, item.text())
+        dest = os.path.join(self.currentLocalDir, item.text() + '_')
+        print(fname)
+
+        with open(dest, 'w') as file:
+            fd = open(fname, 'r')
+            file.writelines(fd.readlines())
+            fd.close()
 
     @staticmethod
     def render_tree_view(fsModel: QFileSystemModel, path: QDir, view: QTreeView):
@@ -70,22 +124,9 @@ class MainWindow(QMainWindow, UiFTPClient):
         view.setRootIndex(fsModel.index(path.absolutePath()))
         view.setDragDropMode(QAbstractItemView.InternalMove)
 
-    def clicked_tree_view_local(self, index):
-        self.fsModel.flags(index)
-        path = self.fsModel.fileInfo(index).absoluteFilePath()
-        # self.render_tree_view(self.fsModel, path, self.localTreeDir)
-        self.parsing_list_widget(path, self.localListFile)
-
-    def parsing_list_widget(self, path, view: QListWidget):
-        view.clear()
-        for file in os.listdir(path):
-            itemWidget = QListWidgetItem()
-            itemWidget.setText(file)
-            view.addItem(itemWidget)
-
     # REMOTE
     def get_list_dir_remote(self, path="."):
-        self.remoteDir = self.client.list_dir()
+        self.remoteDir = self.client.list_dir(path)
 
     def change_dir_remote(self, path):
         self.remoteDir = self.client.change_dir(path)
