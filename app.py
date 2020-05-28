@@ -7,36 +7,6 @@ import sys, os
 from pathlib import Path
 
 
-class LocalListWidget(QListWidget):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setAcceptDrops(True)
-        self.setIconSize(QSize(72, 72))
-
-    def dragEnterEvent(self, event):
-        if event.mimeData().hasUrls():
-            event.acceptProposedAction()
-
-    def dragMoveEvent(self, event):
-        if event.mimeData().hasUrls:
-            event.setDropAction(Qt.CopyAction)
-            event.accept()
-        else:
-            event.ignore()
-
-    def dropEvent(self, event):
-        if event.mimeData().hasUrls:
-            event.setDropAction(Qt.CopyAction)
-            event.accept()
-            links = []
-            for url in event.mimeData().urls():
-                print(url)
-                links.append(str(url.toLocalFile()))
-            self.emit(PYQT_SIGNAL("dropped"), links)
-        else:
-            event.ignore()
-
-
 # Subclass QMainWindow to customise your application's main window
 class MainWindow(QMainWindow, UiFTPClient):
     client = None
@@ -49,7 +19,10 @@ class MainWindow(QMainWindow, UiFTPClient):
     remoteModel = None
 
     remoteDir = []
+    remoteHist = []
+
     currentLocalDir = "."
+    currentRemoteDir = "/"
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
@@ -131,12 +104,14 @@ class MainWindow(QMainWindow, UiFTPClient):
         self.remoteDir = self.client.list_dir(path)
 
     def change_dir_remote(self, path):
+        self.remoteHist.append(path)
+        self.currentRemoteDir = os.path.join(self.client.curr_dir(), path)
         self.remoteDir = self.client.change_dir(path)
 
     def remote_filesystem_model(self, path="."):
-        self.remoteModel = QFileSystemModel()
-        self.remoteModel.setRootPath(path)
-        self.get_list_dir_remote(path)
+        # self.remoteModel = QFileSystemModel()
+        # self.remoteModel.setRootPath(path)
+        # self.get_list_dir_remote(path)
         print(self.remoteDir)
 
         self.parsing_remote_tree_widget(self.remoteDir)
@@ -154,7 +129,8 @@ class MainWindow(QMainWindow, UiFTPClient):
             self.remoteTreeDir.addTopLevelItem(treeWidget)
         self.parsing_remote_list_widget(list_files)
 
-    def parsing_remote_child_tree_widget(self, parent: QTreeWidgetItem, dirs):
+    @staticmethod
+    def parsing_remote_child_tree_widget(parent: QTreeWidgetItem, dirs):
         list_files = []
         for file in dirs:
             type_file = file[1]['type']
@@ -174,7 +150,7 @@ class MainWindow(QMainWindow, UiFTPClient):
     # Slot for itemClicked
     def parsing_folder_remote(self, item: QTreeWidgetItem, column: QColumnView):
         if item.text(1) == 'dir':
-            self.change_dir_remote(item.text(0))
+            self.change_dir_remote(os.path.join(self.currentRemoteDir, item.text(0)))
 
             self.parsing_remote_child_tree_widget(item, self.remoteDir)
 

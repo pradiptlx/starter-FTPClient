@@ -66,7 +66,7 @@ class FTPClientModel:
                                    fp=file, callback=None)
 
     def change_dir(self, path=".") -> list:
-        fullpath = os.path.join(self.remoteCurrentPath, os.path.sep + path)
+        fullpath = path
         self.client.cwd(fullpath)
 
         self.remoteHist.append(fullpath)
@@ -74,14 +74,19 @@ class FTPClientModel:
 
         return self.list_dir(fullpath)
 
+    def curr_dir(self):
+        return self.client.pwd()
+
 
 if __name__ == '__main__':
     client = FTPClientModel()
     client.connect()
-    client.upload(f"{os.path.abspath('../file')}\\abc.txt",
-                  "/folder1/testabc.txt")
+    # client.upload(f"{os.path.abspath('../file')}\\abc.txt",
+    #               "/folder1/testabc.txt")
     result = client.list_dir('.')
     print(result)
-    result = client.change_dir('folder1')
+    print(client.curr_dir())
+    result = client.change_dir('/folder1')
+    print(client.curr_dir())
     print(result)
     client.client.quit()
