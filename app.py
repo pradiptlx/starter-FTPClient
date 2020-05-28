@@ -64,6 +64,8 @@ class MainWindow(QMainWindow, UiFTPClient):
 
         self.localListFile.itemChanged.connect(self.list_item_changed)
 
+        self.remoteTreeDir.itemClicked.connect(self.parsing_folder_remote)
+
     def connect_slot(self):
         if not self.client.isConnected:
             self.username = self.usernameInput.text()
@@ -83,6 +85,7 @@ class MainWindow(QMainWindow, UiFTPClient):
             self.client.disconnect()
             self.connectBtn.setText('Connect')
             self.remoteTreeDir.clear()
+            self.remoteListFile.clear()
 
     def filesystem_model(self, path="."):
         self.fsModel = QFileSystemModel()
@@ -140,16 +143,46 @@ class MainWindow(QMainWindow, UiFTPClient):
         # self.render_tree_view(self.remoteModel, QDir(path), self.remoteTreeDir)
 
     def parsing_remote_tree_widget(self, dirs):
+        list_files = []
         for file in dirs:
+            type_file = file[1]['type']
+            if type_file == 'file':
+                list_files.append(file)
             treeWidget = QTreeWidgetItem()
             treeWidget.setText(0, file[0])
-            treeWidget.setText(1, file[1]['type'])
+            treeWidget.setText(1, type_file)
             self.remoteTreeDir.addTopLevelItem(treeWidget)
+        self.parsing_remote_list_widget(list_files)
 
-    def clicked_tree_view_remote(self, index: QModelIndex):
-        path = self.remoteModel.fileInfo(index).absoluteFilePath()
-        print(path)
-        self.render_tree_view(self.remoteModel, path, self.remoteTreeDir)
+    def parsing_remote_child_tree_widget(self, parent: QTreeWidgetItem, dirs):
+        list_files = []
+        for file in dirs:
+            type_file = file[1]['type']
+            if type_file == 'file':
+                list_files.append(file)
+            treeWidget = QTreeWidgetItem()
+            treeWidget.setText(0, file[0])
+            treeWidget.setText(1, type_file)
+            parent.addChild(treeWidget)
+
+    def parsing_remote_list_widget(self, list_files):
+        for file in list_files:
+            itemListWidget = QListWidgetItem()
+            itemListWidget.setText(file[0])
+            self.remoteListFile.addItem(itemListWidget)
+
+    # Slot for itemClicked
+    def parsing_folder_remote(self, item: QTreeWidgetItem, column: QColumnView):
+        if item.text(1) == 'dir':
+            self.change_dir_remote(item.text(0))
+
+            self.parsing_remote_child_tree_widget(item, self.remoteDir)
+
+
+def clicked_tree_view_remote(self, index: QModelIndex):
+    path = self.remoteModel.fileInfo(index).absoluteFilePath()
+    print(path)
+    self.render_tree_view(self.remoteModel, path, self.remoteTreeDir)
 
 
 # You need one (and only one) QApplication instance per application.
