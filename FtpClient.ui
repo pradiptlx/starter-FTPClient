@@ -168,7 +168,17 @@
        <item>
         <layout class="QHBoxLayout" name="containerLocalDir">
          <item>
-          <widget class="QTreeView" name="localTreeDir"/>
+          <widget class="QTreeView" name="localTreeDir">
+           <property name="dragEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="dragDropMode">
+            <enum>QAbstractItemView::InternalMove</enum>
+           </property>
+           <property name="defaultDropAction">
+            <enum>Qt::MoveAction</enum>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QListWidget" name="localListFile">
@@ -211,7 +221,27 @@
        <item>
         <layout class="QHBoxLayout" name="containerRemoteDir">
          <item>
-          <widget class="QTreeView" name="remoteTreeDir"/>
+          <widget class="QTreeWidget" name="remoteTreeDir">
+           <property name="dragEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="dragDropMode">
+            <enum>QAbstractItemView::DragDrop</enum>
+           </property>
+           <property name="defaultDropAction">
+            <enum>Qt::TargetMoveAction</enum>
+           </property>
+           <column>
+            <property name="text">
+             <string>Filename</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Type</string>
+            </property>
+           </column>
+          </widget>
          </item>
          <item>
           <widget class="QListWidget" name="remoteListFile">
@@ -226,6 +256,9 @@
            </property>
            <property name="dragDropMode">
             <enum>QAbstractItemView::DragDrop</enum>
+           </property>
+           <property name="defaultDropAction">
+            <enum>Qt::TargetMoveAction</enum>
            </property>
           </widget>
          </item>

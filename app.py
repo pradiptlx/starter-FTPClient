@@ -63,8 +63,6 @@ class MainWindow(QMainWindow, UiFTPClient):
         self.localTreeDir.expandsOnDoubleClick()
 
         self.localListFile.itemChanged.connect(self.list_item_changed)
-        self.localListFile.setAcceptDrops(True)
-        self.localListFile.setDragEnabled(True)
 
     def connect_slot(self):
         if not self.client.isConnected:
@@ -84,6 +82,7 @@ class MainWindow(QMainWindow, UiFTPClient):
         else:
             self.client.disconnect()
             self.connectBtn.setText('Connect')
+            self.remoteTreeDir.clear()
 
     def filesystem_model(self, path="."):
         self.fsModel = QFileSystemModel()
@@ -132,15 +131,25 @@ class MainWindow(QMainWindow, UiFTPClient):
         self.remoteDir = self.client.change_dir(path)
 
     def remote_filesystem_model(self, path="."):
-        self.fsModel = QFileSystemModel()
-        self.fsModel.setRootPath(path)
+        self.remoteModel = QFileSystemModel()
+        self.remoteModel.setRootPath(path)
+        self.get_list_dir_remote(path)
+        print(self.remoteDir)
 
-        self.render_tree_view(self.fsModel, QDir(path), self.remoteTreeDir)
+        self.parsing_remote_tree_widget(self.remoteDir)
+        # self.render_tree_view(self.remoteModel, QDir(path), self.remoteTreeDir)
+
+    def parsing_remote_tree_widget(self, dirs):
+        for file in dirs:
+            treeWidget = QTreeWidgetItem()
+            treeWidget.setText(0, file[0])
+            treeWidget.setText(1, file[1]['type'])
+            self.remoteTreeDir.addTopLevelItem(treeWidget)
 
     def clicked_tree_view_remote(self, index: QModelIndex):
-        path = self.fsModel.fileInfo(index).absoluteFilePath()
+        path = self.remoteModel.fileInfo(index).absoluteFilePath()
         print(path)
-        self.render_tree_view(self.fsModel, path, self.remoteTreeDir)
+        self.render_tree_view(self.remoteModel, path, self.remoteTreeDir)
 
 
 # You need one (and only one) QApplication instance per application.
