@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>FTPClient</class>
  <widget class="QMainWindow" name="FTPClient">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -20,6 +23,12 @@
    <string>FTPClient</string>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <widget class="QLineEdit" name="usernameInput">
     <property name="geometry">
      <rect>
@@ -173,29 +182,10 @@
             <bool>true</bool>
            </property>
            <property name="dragDropMode">
-            <enum>QAbstractItemView::InternalMove</enum>
+            <enum>QAbstractItemView::DragOnly</enum>
            </property>
            <property name="defaultDropAction">
-            <enum>Qt::MoveAction</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QListWidget" name="localListFile">
-           <property name="dragEnabled">
-            <bool>true</bool>
-           </property>
-           <property name="dragDropOverwriteMode">
-            <bool>true</bool>
-           </property>
-           <property name="dragDropMode">
-            <enum>QAbstractItemView::DragDrop</enum>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>72</width>
-             <height>72</height>
-            </size>
+            <enum>Qt::LinkAction</enum>
            </property>
           </widget>
          </item>
@@ -207,6 +197,9 @@
       <layout class="QVBoxLayout" name="remoteDir">
        <property name="spacing">
         <number>10</number>
+       </property>
+       <property name="sizeConstraint">
+        <enum>QLayout::SetDefaultConstraint</enum>
        </property>
        <item>
         <widget class="QLabel" name="remoteLabel">
@@ -220,8 +213,14 @@
        </item>
        <item>
         <layout class="QHBoxLayout" name="containerRemoteDir">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetNoConstraint</enum>
+         </property>
          <item>
           <widget class="QTreeWidget" name="remoteTreeDir">
+           <property name="contextMenuPolicy">
+            <enum>Qt::CustomContextMenu</enum>
+           </property>
            <property name="dragEnabled">
             <bool>true</bool>
            </property>
@@ -229,7 +228,7 @@
             <enum>QAbstractItemView::DragDrop</enum>
            </property>
            <property name="defaultDropAction">
-            <enum>Qt::TargetMoveAction</enum>
+            <enum>Qt::CopyAction</enum>
            </property>
            <column>
             <property name="text">
@@ -241,25 +240,11 @@
              <string>Type</string>
             </property>
            </column>
-          </widget>
-         </item>
-         <item>
-          <widget class="QListWidget" name="remoteListFile">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="dragEnabled">
-            <bool>true</bool>
-           </property>
-           <property name="dragDropMode">
-            <enum>QAbstractItemView::DragDrop</enum>
-           </property>
-           <property name="defaultDropAction">
-            <enum>Qt::TargetMoveAction</enum>
-           </property>
+           <column>
+            <property name="text">
+             <string>Remote Path</string>
+            </property>
+           </column>
           </widget>
          </item>
         </layout>
