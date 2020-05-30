@@ -268,15 +268,36 @@
     <property name="title">
      <string>Menu</string>
     </property>
+    <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
      <string>About</string>
     </property>
+    <addaction name="actionAboutMe"/>
    </widget>
    <addaction name="menuMenu"/>
    <addaction name="menuAbout"/>
   </widget>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionAboutMe">
+   <property name="text">
+    <string>About Me</string>
+   </property>
+   <property name="statusTip">
+    <string>A gentle introduction</string>
+   </property>
+   <property name="whatsThis">
+    <string>Introduction of me</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
