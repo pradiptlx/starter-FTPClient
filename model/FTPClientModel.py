@@ -77,6 +77,9 @@ class FTPClientModel:
     def curr_dir(self):
         return self.client.pwd()
 
+    def delete_file(self, path):
+        fullpath = os.path.join(self.remoteCurrentPath, path)
+        self.client.delete(fullpath)
 
 if __name__ == '__main__':
     client = FTPClientModel()
