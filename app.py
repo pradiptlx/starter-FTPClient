@@ -152,10 +152,10 @@ class MainWindow(QMainWindow, UiFTPClient):
 
     def connect_slot(self):
         if not self.client.isConnected:
-            self.username = self.usernameInput.text()
-            self.password = self.passwordInput.text()
-            self.host = self.hostInput.text()
-            self.port = int(self.portInput.text())
+            # self.username = self.usernameInput.text()
+            # self.password = self.passwordInput.text()
+            # self.host = self.hostInput.text()
+            # self.port = int(self.portInput.text())
 
             self.client.connect(self.username, self.password,
                                 self.host, self.port)
