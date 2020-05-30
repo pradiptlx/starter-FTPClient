@@ -45,7 +45,6 @@ class RemoteListWidget(QListWidget):
             e.acceptProposedAction()
 
     def dropEvent(self, event: QtGui.QDropEvent) -> None:
-        print(event.mimeData())
         if event.mimeData().hasUrls:
             event.setDropAction(Qt.CopyAction)
             event.accept()
@@ -83,6 +82,8 @@ class MainWindow(QMainWindow, UiFTPClient):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         # self.contextMenuRemote = QMenu()
+        self.iconFile = QtGui.QIcon(os.path.abspath('view/icon/document-list.png'))
+        self.iconDir = QtGui.QIcon(os.path.abspath('view/icon/folder.png'))
         self.client = FTPClientModel()
         self.setupUi(self)
         self.remoteListWidget = RemoteListWidget(self.horizontalLayoutWidget)
@@ -143,6 +144,7 @@ class MainWindow(QMainWindow, UiFTPClient):
             fullpath = os.path.join(self.currentLocalDir, file)
             if Path(fullpath).is_file():
                 itemWidget = QListWidgetItem()
+                itemWidget.setIcon(self.iconFile)
                 itemWidget.setText(file)
                 view.addItem(itemWidget)
 
@@ -177,10 +179,10 @@ class MainWindow(QMainWindow, UiFTPClient):
         for file in dirs:
             type_file = file[1]['type']
             if type_file == 'file':
-                icon = QtGui.QIcon(os.path.abspath('view/icon/document-list.png'))
+                icon = self.iconFile
                 list_files.append(file)
             elif type_file == 'dir':
-                icon = QtGui.QIcon(os.path.abspath('view/icon/folder.png'))
+                icon = self.iconDir
             treeWidget = QTreeWidgetItem()
             treeWidget.setIcon(0, icon)
             treeWidget.setText(0, file[0])
@@ -197,10 +199,10 @@ class MainWindow(QMainWindow, UiFTPClient):
             type_file = file[1]['type']
             if type_file == 'file':
                 list_files.append(file)
-                icon = QtGui.QIcon(os.path.abspath('view/icon/document-list.png'))
+                icon = self.iconFile
             elif type_file == 'dir':
                 list_folders.append(file[0])
-                icon = QtGui.QIcon(os.path.abspath('view/icon/folder.png'))
+                icon = self.iconDir
             treeWidget = QTreeWidgetItem()
             treeWidget.setIcon(0, icon)
             treeWidget.setText(0, file[0])
@@ -218,6 +220,7 @@ class MainWindow(QMainWindow, UiFTPClient):
         self.remoteListWidget.clear()
         for file in list_files:
             itemListWidget = QListWidgetItem()
+            itemListWidget.setIcon(self.iconFile)
             itemListWidget.setText(file[0])
             self.remoteListWidget.addItem(itemListWidget)
 
