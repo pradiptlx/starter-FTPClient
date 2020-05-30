@@ -129,7 +129,6 @@ class MainWindow(QMainWindow, UiFTPClient):
         self.remoteTreeDir.itemCollapsed.connect(self.remove_collapsed_tree_remote)
         # self.remoteListWidget.customContextMenuRequested.connect(self.delete_context_menu_remote)
         # self.register_context_menu_remote()
-        self.remoteListWidget.itemChanged.connect(self.remote_list_widget_item_changed)
         self.remoteListWidget.dropped.connect(self.upload_file_to_remote)
 
     def connect_slot(self):
@@ -255,10 +254,6 @@ class MainWindow(QMainWindow, UiFTPClient):
             itemListWidget.setText(file[0])
             self.remoteListWidget.addItem(itemListWidget)
 
-    def remote_list_widget_item_changed(self, item: QListWidgetItem):
-        # UPLOAD TO REMOTE
-        print(item.text())
-
     # Slot for itemClicked
     def parsing_folder_remote(self, item: QTreeWidgetItem, column: QColumnView):
         if item.text(1) == 'dir':
@@ -295,14 +290,9 @@ class MainWindow(QMainWindow, UiFTPClient):
     def create_remote_menu(self):
         pass
 
-
-# You need one (and only one) QApplication instance per application.
-# Pass in sys.argv to allow command line arguments for your app.
-# If you know you won't use command line arguments QApplication([]) works too.
 app = QApplication(sys.argv)
 
 window = MainWindow()
-window.show()  # IMPORTANT!!!!! Windows are hidden by default.
+window.show()
 
-# Start the event loop.
 app.exec_()
