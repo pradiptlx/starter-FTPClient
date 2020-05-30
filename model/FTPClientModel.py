@@ -2,6 +2,7 @@ from ftplib import FTP
 from pathlib import PurePath, Path
 from zipfile import ZipFile
 import os
+from urllib import parse
 
 
 class FTPClientModel:
@@ -57,7 +58,7 @@ class FTPClientModel:
         return Path(destPath).is_file()
 
     def upload(self, sourcePath, destName):
-        destPath = os.path.join(self.remoteCurrentPath, os.path.sep + destName)
+        destPath = os.path.join(self.remoteCurrentPath, destName)
         # CALLBACK not working yet
         # progres = None
 

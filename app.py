@@ -17,19 +17,33 @@ class LocalListWidget(QListWidget):
         self.setAcceptDrops(True)
         self.setDefaultDropAction(Qt.CopyAction)
 
-    def dragMoveEvent(self, e: QtGui.QDragMoveEvent) -> None:
-        print(e)
+    # def mouseMoveEvent(self, e: QtGui.QMouseEvent) -> None:
+    #     e.accept()
+    #     print(e.pos())
+
+    def dragMoveEvent(self, event: QtGui.QDragMoveEvent) -> None:
+        if event.mimeData().hasUrls:
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+        else:
+            event.ignore()
 
     def dragEnterEvent(self, e: QtGui.QDragEnterEvent) -> None:
         if e.mimeData().hasUrls():
             e.acceptProposedAction()
+        else:
+            print(e)
 
     def dropEvent(self, event: QtGui.QDropEvent) -> None:
         if event.mimeData().hasUrls():
-            print(event.mimeData().data('text/uri-list'))
+            for url in event.mimeData().urls():
+                path = url.toLocalFile()
+                print(path)
 
 
 class RemoteListWidget(QListWidget):
+    dropped = pyqtSignal(str)  # Dropped file signal
+
     def __init__(self, parent: QListWidget):
         super().__init__(parent)
         self.setAcceptDrops(parent.acceptDrops())
@@ -37,19 +51,32 @@ class RemoteListWidget(QListWidget):
         self.setAcceptDrops(True)
         self.setDefaultDropAction(Qt.CopyAction)
 
-    def dragMoveEvent(self, e: QtGui.QDragMoveEvent) -> None:
-        print(e)
+    def dragMoveEvent(self, event: QtGui.QDragMoveEvent) -> None:
+        if event.mimeData().hasUrls:
+            event.setDropAction(Qt.CopyAction)
+            event.accept()
+        else:
+            print(event)
+            event.ignore()
 
     def dragEnterEvent(self, e: QtGui.QDragEnterEvent) -> None:
         if e.mimeData().hasUrls():
             e.acceptProposedAction()
+        else:
+            print(e.mimeData().text())
 
     def dropEvent(self, event: QtGui.QDropEvent) -> None:
         if event.mimeData().hasUrls:
             event.setDropAction(Qt.CopyAction)
             event.accept()
             for url in event.mimeData().urls():
-                print(url.toLocalFile())
+                # print(url.toLocalFile())
+                self.dropped.emit(url.toLocalFile())
+                listItem = QListWidgetItem()
+                fname = os.path.basename(url.toLocalFile())
+                listItem.setText(fname)
+                listItem.setIcon(QtGui.QIcon(os.path.abspath('view/icon/document-list.png')))
+                self.addItem(listItem)
         else:
             event.ignore()
 
@@ -68,6 +95,7 @@ class MainWindow(QMainWindow, UiFTPClient):
     password = "123"
     host = '127.0.0.1'
     port = 8009
+    url = None
 
     fsModel = None
     remoteModel = None
@@ -97,12 +125,12 @@ class MainWindow(QMainWindow, UiFTPClient):
         self.localTreeDir.expanded.connect(self.clicked_tree_view_local)
         self.localTreeDir.expandsOnDoubleClick()
         self.localListWidget.itemChanged.connect(self.list_item_changed)
-
         self.remoteTreeDir.itemDoubleClicked.connect(self.parsing_folder_remote)
         self.remoteTreeDir.itemCollapsed.connect(self.remove_collapsed_tree_remote)
         # self.remoteListWidget.customContextMenuRequested.connect(self.delete_context_menu_remote)
         # self.register_context_menu_remote()
         self.remoteListWidget.itemChanged.connect(self.remote_list_widget_item_changed)
+        self.remoteListWidget.dropped.connect(self.upload_file_to_remote)
 
     def connect_slot(self):
         if not self.client.isConnected:
@@ -134,6 +162,8 @@ class MainWindow(QMainWindow, UiFTPClient):
     def clicked_tree_view_local(self, index: QModelIndex):
         self.fsModel.flags(index)
         path = self.fsModel.fileInfo(index).absoluteFilePath()
+        self.fsModel.setRootPath(path)
+        # print(self.fsModel.data(index, Qt.StatusTipRole))
         self.currentLocalDir = path
         self.parsing_list_widget(path, self.localListWidget)
         # self.render_tree_view(self.fsModel, path, self.localTreeDir)
@@ -146,6 +176,7 @@ class MainWindow(QMainWindow, UiFTPClient):
                 itemWidget = QListWidgetItem()
                 itemWidget.setIcon(self.iconFile)
                 itemWidget.setText(file)
+                itemWidget.setData(Qt.UserRole, fullpath)
                 view.addItem(itemWidget)
 
     def list_item_changed(self, item: QListWidgetItem):
@@ -242,6 +273,13 @@ class MainWindow(QMainWindow, UiFTPClient):
     @staticmethod
     def remove_collapsed_tree_remote(item: QTreeWidgetItem):
         item.takeChildren()
+
+    @pyqtSlot(str)
+    def upload_file_to_remote(self, url):
+        if self.client.isConnected:
+            fname = os.path.basename(url)
+            self.client.upload(url, fname)
+            self.get_list_dir_remote(self.currentRemoteDir)
 
     # def parsing_path_remote(self, path):
     #     for parent in self.remoteListTree.keys():

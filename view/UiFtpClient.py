@@ -77,7 +77,7 @@ class UiFTPClient(object):
         self.localTreeDir = QtWidgets.QTreeView(self.horizontalLayoutWidget)
         self.localTreeDir.setDragEnabled(True)
         self.localTreeDir.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
-        self.localTreeDir.setDefaultDropAction(QtCore.Qt.LinkAction)
+        self.localTreeDir.setDefaultDropAction(QtCore.Qt.CopyAction)
         self.localTreeDir.setObjectName("localTreeDir")
         self.containerLocalDir.addWidget(self.localTreeDir)
         self.localDir.addLayout(self.containerLocalDir)
