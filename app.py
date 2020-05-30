@@ -32,7 +32,7 @@ class LocalListWidget(QListWidget):
         if e.mimeData().hasUrls():
             e.acceptProposedAction()
         else:
-            print(e)
+            print(e.mimeData().hasText())
 
     def dropEvent(self, event: QtGui.QDropEvent) -> None:
         if event.mimeData().hasUrls():
@@ -130,6 +130,18 @@ class MainWindow(QMainWindow, UiFTPClient):
         # self.remoteListWidget.customContextMenuRequested.connect(self.delete_context_menu_remote)
         # self.register_context_menu_remote()
         self.remoteListWidget.dropped.connect(self.upload_file_to_remote)
+        self.remoteListWidget.installEventFilter(self)
+
+    def eventFilter(self, widget: QObject, event: QEvent) -> bool:
+        if event.type() == QEvent.ContextMenu and widget is self.remoteListWidget:
+            menu = QMenu()
+            menu.addAction('Download')
+            if menu.exec_(event.globalPos()):
+                item = widget.itemAt(event.pos())
+                filename = item.text()
+                self.download_file_from_remote(filename)
+            return True
+        return super(MainWindow, self).eventFilter(widget, event)
 
     def connect_slot(self):
         if not self.client.isConnected:
@@ -268,6 +280,9 @@ class MainWindow(QMainWindow, UiFTPClient):
     @staticmethod
     def remove_collapsed_tree_remote(item: QTreeWidgetItem):
         item.takeChildren()
+
+    def download_file_from_remote(self, filename):
+        self.client.download(filename, os.path.join(self.currentLocalDir, filename))
 
     @pyqtSlot(str)
     def upload_file_to_remote(self, url):
